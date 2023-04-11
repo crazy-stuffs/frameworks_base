@@ -270,5 +270,7 @@ public class SecureSettings {
         Settings.Secure.VISUAL_QUERY_ACCESSIBILITY_DETECTION_ENABLED,
         // EverestOS additions
         Settings.Secure.QUICK_SETTINGS_TILES_VIBRATE,
+        Settings.Secure.DOZE_DOUBLE_TAP_GESTURE_AMBIENT,
+        Settings.Secure.DOZE_PICK_UP_GESTURE_AMBIENT,
     };
 }
