@@ -100,6 +100,8 @@ import static com.android.server.wm.WindowManagerPolicyProto.WINDOW_MANAGER_DRAW
 
 import static org.lineageos.internal.util.DeviceKeysConstants.*;
 
+import org.rising.server.PocketModeService;
+
 import android.accessibilityservice.AccessibilityService;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
@@ -798,6 +800,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private final List<DeviceKeyHandler> mDeviceKeyHandlers = new ArrayList<>();
 
     private LineageButtons mLineageButtons;
+    private PocketModeService mPocketMode;
+
     private PocketManager mPocketManager;
     private PocketLock mPocketLock;
     private boolean mPocketLockShowing;
@@ -1769,7 +1773,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             return LONG_PRESS_POWER_TORCH;
         }
 
-        if (mPocketLockShowing) {
+        if (mPocketMode.isOverlayShowing()) {
             return LONG_PRESS_POWER_HIDE_POCKET_LOCK;
         }
 
@@ -2071,7 +2075,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     private void handleScreenShot(@WindowManager.ScreenshotSource int source,
             @WindowManager.ScreenshotType int type) {
-        if (!mPocketLockShowing) {
+        if (!mPocketMode.isOverlayShowing()) {
             mDefaultDisplayPolicy.takeScreenshot(TAKE_SCREENSHOT_FULLSCREEN, source);
         }
     }
@@ -5320,7 +5324,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         final boolean interactive = (policyFlags & FLAG_INTERACTIVE) != 0;
 
         // Pre-basic policy based on interactive and pocket lock state.
-        if (mIsDeviceInPocket && (!interactive || mPocketLockShowing)) {
+        if (mPocketMode.isDeviceInPocket() && (!interactive || mPocketMode.isOverlayShowing())) {
             if (keyCode != KeyEvent.KEYCODE_POWER &&
                 keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
                 keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
@@ -6349,6 +6353,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (mPocketManager != null) {
             mPocketManager.onInteractiveChanged(false);
         }
+        if (mPocketMode != null) {
+            mPocketMode.setDozeState(isDozeMode());
+            mPocketMode.onInteractiveChanged(false);
+        }
     }
 
     // Called on the PowerManager's Notifier thread.
@@ -6424,6 +6432,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         if (mPocketManager != null) {
             mPocketManager.onInteractiveChanged(true);
+        }
+        if (mPocketMode != null) {
+            mPocketMode.setDozeState(isDozeMode());
+            mPocketMode.onInteractiveChanged(true);
         }
     }
 
@@ -6971,6 +6983,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         mAutofillManagerInternal = LocalServices.getService(AutofillManagerInternal.class);
         mGestureLauncherService = LocalServices.getService(GestureLauncherService.class);
+        
+        mPocketMode = PocketModeService.getInstance(mContext);
+        mPocketMode.onStart();
     }
 
     /** {@inheritDoc} */
