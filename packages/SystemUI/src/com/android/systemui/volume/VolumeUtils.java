@@ -34,7 +34,7 @@ import com.android.systemui.res.R;
 import com.android.systemui.tuner.TunerService;
 
 import com.android.internal.util.android.VibrationUtils;
-import com.android.internal.util.crdroid.ThemeUtils;
+import com.android.internal.util.everest.ThemeUtils;
 
 public class VolumeUtils implements TunerService.Tunable {
     private static final String TAG = "VolumeUtils";
